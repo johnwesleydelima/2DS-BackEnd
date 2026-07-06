@@ -1,73 +1,74 @@
-// No terminal: 
-// npm init
-// npm i express
-// node index.js -> executa a API
-// instalar extensão RapidAPI Client no VSCode
+/* 
+Instale as bibliotecas e o cliente de API:
+npm init
+npm i express
+Procure pela extensão RapidAPI Client no VSCode.
+*/
+// Para executar a API no terminal: node index.js
+// Link para testar a API: http://localhost:3000/rota
 const express = require("express")
 const app = express()
 const port = 3000
-app.use(express.json())
-const fs = require('fs')
+app.use(express.json()) // configura API para usar JSON.
+const fs = require('fs') // importa leitura e escrita de arquivos.
 
-app.post("/clientes", (req, res) => {
-    const cliente = req.body
+app.post("/famosos", (req, res) => {
+    const famoso = req.body
+    try{
+    const famosos = JSON.parse(fs.readFileSync("famosos.json","utf8"))
+    //adicionar famoso
+    famosos.push(famoso)
+    //salvar o arquivo
+    fs.writeFileSync("famosos.json",JSON.stringify(famosos),"utf8")
+    //resposta
+    res.status(201).json({resposta:" Famoso cadastrado!"})
+    }catch(erro){
+        res.status(500).json({erro:erro.message})
+    }
+
+})
+app.get("/famosos", (req, res) => {
     try {
-        // abrir o arquivo
-        const bd = JSON.parse(fs.readFileSync("bd.json", "utf8"))
-        // adicionar o cliente
-        bd.push(cliente)
-        // salvar o arquivo
-        fs.writeFileSync("bd.json", JSON.stringify(bd), "utf8")
-        // resposta
-        res.status(201).json({resposta: "Cliente cadastrado!"})
+        const famosos = JSON.parse(fs.readFileSync("famosos.json", "utf8"))
+        res.status(200).json({resposta: famosos})
     } catch (erro) {
         res.status(500).json({erro: erro.message})
     }
 })
 
-app.get("/clientes", (req, res) => {
+app.get("/famosos/:id", (req, res) => {
+    const id = req.params.id
     try {
-        const bd = JSON.parse(fs.readFileSync("bd.json", "utf8"))
-        res.status(200).json({resposta: bd})
-    } catch (erro) {
-        res.status(500).json({erro: erro.message})
-    }
-})
-
-
-app.get("/clientes/:cpf", (req, res) => {
-    const cpf = req.params.cpf
-    try {
-        const bd = JSON.parse(fs.readFileSync("bd.json", "utf8"))
-        const cliente = bd.find((cliente) => cliente.cpf == cpf)
-        if(!cliente) {
-            return res.status(404).json({erro: "Cliente não existe no BD!"})
+        const famoso = JSON.parse(fs.readFileSync("famosos.json", "utf8"))
+        const famosos= famosos.find((famosos) => famoso.id == id)
+        if(!famoso) {
+            return res.status(404).json({erro: "Famoso não existe no BD!"})
         }
-        res.status(200).json({resposta: cliente})
+        res.status(200).json({resposta: famoso})
     } catch (erro) {
         res.status(500).json({erro: erro.message})
     }
 })
 
-app.delete("/clientes/:cpf", (req, res) => {
-    // pegar o cpf da rota
-    const cpf = req.params.cpf
+app.delete("/famosos/:id", (req, res) => {
+    // pegar o id da rota
+    const id = req.params.id
     try {
         // abrir o banco de dados
-        const bd = JSON.parse(fs.readFileSync("bd.json", "utf8"))
-        // encontrar o índice do cliente a ser excluido
-        const indiceCliente = bd.findIndex((cliente) => cliente.cpf == cpf)
+        const famosos = JSON.parse(fs.readFileSync("famosos.json", "utf8"))
+        // encontrar o índice do famoso a ser excluido
+        const indiceFamoso = famosos.findIndex((famosos) => famosos.id == id)
         // remover o indice da lista
-        if (indiceCliente == -1) {
-            return res.status(404).json({erro: "O cliente não existe"})
+        if (indiceFamoso == -1) {
+            return res.status(404).json({erro: "O famoso não existe"})
         }
-        bd.splice(indiceCliente, 1)
+        famosos.splice(indiceFamoso, 1)
         // atualizar o arquivo
-        fs.writeFilesSync("bd.json", JSON.stringify(bd),"uf8")
-        // dar uma resposta para o cliente
-        res.status(200).json({resposta: "Cliente excluído com sucesso!"})
+        fs.writeFileSync("famosos.json", JSON.stringify(famosos), "utf8")
+        // dar uma resposta para o famoso
+        res.status(200).json({resposta: "Famoso excluído com sucesso!"})
     } catch (error){
-        res.status(500).json({erro: erro.message})
+        res.status(500).json({erro: error.message})
     }
 })
 
@@ -75,6 +76,11 @@ app.listen(port, ()=>{
     console.log("API rodando na porta" + port)
 })
 
-// GET http://localhost:3000/clientes
+// GET http://localhost:3000/
 
 // TESTAR TODAS AS ROTAS: post, get geral e get cpf!
+
+
+
+
+// Execução da API:
